@@ -3,7 +3,6 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
-from aiogram.types import Message
 from config import BOT_TOKEN
 from handlers import start, quiz, emergency, guide
 
@@ -21,7 +20,7 @@ async def main():
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
     
-    # Удаляем ВСЕ вебхуки перед запуском (гарантируем чистый старт)
+    # Удаляем ВСЕ вебхуки перед запуском
     try:
         webhook_info = await bot.get_webhook_info()
         if webhook_info.url:
@@ -33,17 +32,11 @@ async def main():
     # Инициализация диспетчера
     dp = Dispatcher()
     
-    # Подключение роутеров
+    # Подключение роутеров (ПОРЯДОК ВАЖЕН!)
     dp.include_router(start.router)
     dp.include_router(quiz.router)
     dp.include_router(emergency.router)
     dp.include_router(guide.router)
-    
-    # Обработчик НЕОБРАБОТАННЫХ сообщений (для отладки)
-    @dp.message()
-    async def catch_all(message: Message):
-        logger.warning(f"🔍 Необработанное сообщение: '{message.text}' от @{message.from_user.username} (ID: {message.from_user.id})")
-        # Не отвечаем, чтобы не спамить
     
     logger.info("✅ Бот запущен! Напишите ему в Telegram: /start")
     
