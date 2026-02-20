@@ -2,10 +2,12 @@ from aiogram import Router, F
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+import logging
 
 router = Router()
+logger = logging.getLogger(__name__)
 
-# Хранилище данных (переместили сюда, чтобы избежать циклического импорта)
+# Хранилище данных
 user_quiz_data = {}
 
 class PanicQuiz(StatesGroup):
@@ -14,6 +16,8 @@ class PanicQuiz(StatesGroup):
 
 @router.message(F.text.in_(['📝 Пройти квиз']))
 async def start_quiz(message: Message, state: FSMContext):
+    logger.info(f"📝 Квиз запущен. User: {message.from_user.id}")
+    
     kb = ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="💓 Сердцебиение"), KeyboardButton(text="🌬️ Удушье")],
@@ -27,6 +31,8 @@ async def start_quiz(message: Message, state: FSMContext):
 
 @router.message(PanicQuiz.symptoms)
 async def process_symptoms(message: Message, state: FSMContext):
+    logger.info(f"💓 Симптом обработан: {message.text}. User: {message.from_user.id}")
+    
     if message.text == "➡️ Далее":
         kb = ReplyKeyboardMarkup(
             keyboard=[
@@ -48,6 +54,8 @@ async def process_symptoms(message: Message, state: FSMContext):
 
 @router.message(PanicQuiz.triggers)
 async def process_triggers(message: Message, state: FSMContext):
+    logger.info(f"🎯 Триггер обработан: {message.text}. User: {message.from_user.id}")
+    
     if message.text != "✅ Готово":
         user_id = message.from_user.id
         if user_id not in user_quiz_data:
