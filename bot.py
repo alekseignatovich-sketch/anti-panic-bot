@@ -19,7 +19,7 @@ async def main():
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
     
-    # Инициализация диспетчера (ОДИН раз!)
+    # Инициализация диспетчера
     dp = Dispatcher()
     
     # Подключение роутеров (каждый только один раз)
@@ -28,12 +28,12 @@ async def main():
     dp.include_router(emergency.router)
     dp.include_router(guide.router)
     
-    # Удаляем вебхук (если был установлен ранее)
+    # Удаляем вебхук и сбрасываем pending обновления
     await bot.delete_webhook(drop_pending_updates=True)
     
     logging.info("✅ Бот запущен! Напишите ему в Telegram: /start")
     
-    # Запуск пуллинга (ТОЛЬКО ОДИН РАЗ)
+    # Запуск пуллинга
     try:
         await dp.start_polling(bot)
     except KeyboardInterrupt:
