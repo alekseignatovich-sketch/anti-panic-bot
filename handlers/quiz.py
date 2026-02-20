@@ -17,7 +17,7 @@ class PanicQuiz(StatesGroup):
 
 # Кнопки для фильтрации
 QUIZ_BUTTONS = [
-    '🎯 Настроить под меня',
+    '🎯 Опишите свое самочувствие',
     '💓 Сердцебиение',
     '🌬️ Удушье/не хватает воздуха',
     '🌀 Головокружение',
@@ -35,7 +35,7 @@ QUIZ_BUTTONS = [
     '🛒 В магазине/публичных местах'
 ]
 
-@router.message(F.text.in_(['🎯 Настроить под меня']))
+@router.message(F.text.in_(['🎯 Опишите свое самочувствие']))
 async def start_quiz(message: Message, state: FSMContext):
     logger.info(f"🎯 Опрос запущен. User: {message.from_user.id}")
     
@@ -63,7 +63,7 @@ async def process_symptoms(message: Message, state: FSMContext):
     if message.text == "➡️ Пропустить":
         await state.update_data(symptoms=[])
     else:
-        if message.from_user.id not in user_quiz_
+        if message.from_user.id not in user_quiz_data:
             user_quiz_data[message.from_user.id] = {'symptoms': []}
         
         if message.text not in user_quiz_data[message.from_user.id]['symptoms']:
@@ -100,7 +100,7 @@ async def process_triggers(message: Message, state: FSMContext):
         trigger = message.text
     
     user_id = message.from_user.id
-    if user_id not in user_quiz_
+    if user_id not in user_quiz_data:
         user_quiz_data[user_id] = {}
     user_quiz_data[user_id]['triggers'] = trigger
     
@@ -140,7 +140,7 @@ async def process_context(message: Message, state: FSMContext):
     # Финальное сообщение с кнопкой гайда
     kb = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="📚 Мой персональный гайд")]
+            [KeyboardButton(text="📚 Мой персональный гайд для улучшения состояния")]
         ],
         resize_keyboard=True
     )
