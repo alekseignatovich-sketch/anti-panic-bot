@@ -32,11 +32,12 @@ async def main():
     # Инициализация диспетчера
     dp = Dispatcher()
     
-    # Подключение роутеров (ПОРЯДОК ВАЖЕН!)
-    dp.include_router(start.router)
+    # ПОРЯДОК РЕГИСТРАЦИИ ВАЖЕН!
+    # Сначала более специфичные обработчики (гайд), потом общие (квиз)
+    dp.include_router(guide.router)
     dp.include_router(quiz.router)
     dp.include_router(emergency.router)
-    dp.include_router(guide.router)
+    dp.include_router(start.router)
     
     logger.info("✅ Бот запущен! Напишите ему в Telegram: /start")
     
