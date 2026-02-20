@@ -17,7 +17,7 @@ client = Groq(api_key=GROQ_API_KEY)
 
 from handlers.quiz import user_quiz_data
 
-@router.message(F.text.in_(['📚 Мой персональный гайд', '📚 Получить гайд']))
+@router.message(F.text.contains("гайд"))
 async def generate_guide(message: Message):
     user_id = message.from_user.id
     
@@ -25,8 +25,8 @@ async def generate_guide(message: Message):
     
     if user_id not in user_quiz_data or not user_quiz_data[user_id]:
         await message.answer(
-            "⚠️ Сначала настройте бот под себя!\n"
-            "Нажмите '🎯 Настроить под меня'"
+            "⚠️ Сначала опишите своё самочувствие!\n"
+            "Нажмите '🎯 Опишите свое самочувствие'"
         )
         return
     
@@ -62,7 +62,7 @@ async def generate_guide(message: Message):
             reply_markup=ReplyKeyboardMarkup(
                 keyboard=[
                     [KeyboardButton(text="🆘 Мне плохо сейчас")],
-                    [KeyboardButton(text="🎯 Настроить заново")]
+                    [KeyboardButton(text="🎯 Опишите свое самочувствие")]
                 ],
                 resize_keyboard=True
             )
@@ -78,7 +78,7 @@ async def generate_guide(message: Message):
             reply_markup=ReplyKeyboardMarkup(
                 keyboard=[
                     [KeyboardButton(text="🆘 Мне плохо сейчас")],
-                    [KeyboardButton(text="🎯 Настроить заново")]
+                    [KeyboardButton(text="🎯 Опишите свое самочувствие")]
                 ],
                 resize_keyboard=True
             )
