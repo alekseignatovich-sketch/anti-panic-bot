@@ -18,18 +18,34 @@ async def main():
         token=BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
+    
+    # Инициализация диспетчера (ОДИН раз!)
     dp = Dispatcher()
-
-    # Подключение роутеров
+    
+    # Подключение роутеров (каждый только один раз)
     dp.include_router(start.router)
     dp.include_router(quiz.router)
     dp.include_router(emergency.router)
     dp.include_router(guide.router)
-
-    # Запуск бота
+    
+    # Удаляем вебхук (если был установлен ранее)
     await bot.delete_webhook(drop_pending_updates=True)
-    logging.info("✅ Бот запущен!")
-    await dp.start_polling(bot)
+    
+    logging.info("✅ Бот запущен! Напишите ему в Telegram: /start")
+    
+    # Запуск пуллинга (ТОЛЬКО ОДИН РАЗ)
+    try:
+        await dp.start_polling(bot)
+    except KeyboardInterrupt:
+        logging.info("🛑 Бот остановлен пользователем")
+    except Exception as e:
+        logging.error(f"❌ Ошибка бота: {e}")
+        raise
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except RuntimeError as e:
+        # Игнорируем ошибку "Event loop is closed" на Windows
+        if "Event loop is closed" not in str(e):
+            raise
