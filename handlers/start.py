@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
-from config import SUPPORTED_LANGUAGES, DISCLAIMER, HOTLINES
+from config import SUPPORTED_LANGUAGES, DISCLAIMER
 
 router = Router()
 user_languages = {}
@@ -9,9 +9,9 @@ user_languages = {}
 def get_main_keyboard(lang='ru'):
     texts = {
         'ru': {
-            'quiz': '📝 Пройти квиз',
+            'quiz': '🎯 Настроить под меня',
             'emergency': '🆘 Мне плохо сейчас',
-            'guide': '📚 Получить гайд',
+            'guide': '📚 Мой персональный гайд',
             'language': '🌐 Язык'
         }
     }
