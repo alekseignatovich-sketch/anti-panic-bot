@@ -15,7 +15,27 @@ class PanicQuiz(StatesGroup):
     triggers = State()
     context = State()
 
-@router.message(F.text == '🎯 Настроить под меня')
+# Кнопки для фильтрации
+QUIZ_BUTTONS = [
+    '🎯 Настроить под меня',
+    '💓 Сердцебиение',
+    '🌬️ Удушье/не хватает воздуха',
+    '🌀 Головокружение',
+    '🧊 Озноб/потливость',
+    '👻 Дереализация',
+    '💥 Боль в груди',
+    '➡️ Пропустить',
+    '👥 Толпа/люди',
+    '💼 Работа/дедлайны',
+    '🏥 Здоровье/врачи',
+    '🏠 Одиночество/дома',
+    '🏢 На работе',
+    '🏠 Дома',
+    '🚇 В транспорте',
+    '🛒 В магазине/публичных местах'
+]
+
+@router.message(F.text.in_(['🎯 Настроить под меня']))
 async def start_quiz(message: Message, state: FSMContext):
     logger.info(f"🎯 Опрос запущен. User: {message.from_user.id}")
     
@@ -36,14 +56,14 @@ async def start_quiz(message: Message, state: FSMContext):
         reply_markup=kb
     )
 
-@router.message(PanicQuiz.symptoms)
+@router.message(PanicQuiz.symptoms, F.text.in_(QUIZ_BUTTONS))
 async def process_symptoms(message: Message, state: FSMContext):
     logger.info(f"💓 Симптом: {message.text}. User: {message.from_user.id}")
     
     if message.text == "➡️ Пропустить":
         await state.update_data(symptoms=[])
     else:
-        if message.from_user.id not in user_quiz_data:
+        if message.from_user.id not in user_quiz_
             user_quiz_data[message.from_user.id] = {'symptoms': []}
         
         if message.text not in user_quiz_data[message.from_user.id]['symptoms']:
@@ -70,7 +90,7 @@ async def process_symptoms(message: Message, state: FSMContext):
         reply_markup=kb
     )
 
-@router.message(PanicQuiz.triggers)
+@router.message(PanicQuiz.triggers, F.text.in_(QUIZ_BUTTONS))
 async def process_triggers(message: Message, state: FSMContext):
     logger.info(f"🎯 Триггер: {message.text}. User: {message.from_user.id}")
     
@@ -80,7 +100,7 @@ async def process_triggers(message: Message, state: FSMContext):
         trigger = message.text
     
     user_id = message.from_user.id
-    if user_id not in user_quiz_data:
+    if user_id not in user_quiz_
         user_quiz_data[user_id] = {}
     user_quiz_data[user_id]['triggers'] = trigger
     
@@ -101,7 +121,7 @@ async def process_triggers(message: Message, state: FSMContext):
         reply_markup=kb
     )
 
-@router.message(PanicQuiz.context)
+@router.message(PanicQuiz.context, F.text.in_(QUIZ_BUTTONS))
 async def process_context(message: Message, state: FSMContext):
     logger.info(f"📍 Контекст: {message.text}. User: {message.from_user.id}")
     
