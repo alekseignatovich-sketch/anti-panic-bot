@@ -3,6 +3,7 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
+from aiogram.types import Message
 from config import BOT_TOKEN
 from handlers import start, quiz, emergency, guide
 
@@ -11,6 +12,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
+logger = logging.getLogger(__name__)
 
 async def main():
     # Инициализация бота
@@ -19,33 +21,44 @@ async def main():
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
     
+    # Удаляем ВСЕ вебхуки перед запуском (гарантируем чистый старт)
+    try:
+        webhook_info = await bot.get_webhook_info()
+        if webhook_info.url:
+            await bot.delete_webhook(drop_pending_updates=True)
+            logger.info(f"🧹 Удалён вебхук: {webhook_info.url}")
+    except Exception as e:
+        logger.warning(f"⚠️ Не удалось проверить вебхук: {e}")
+    
     # Инициализация диспетчера
     dp = Dispatcher()
     
-    # Подключение роутеров (каждый только один раз)
+    # Подключение роутеров
     dp.include_router(start.router)
     dp.include_router(quiz.router)
     dp.include_router(emergency.router)
     dp.include_router(guide.router)
     
-    # Удаляем вебхук и сбрасываем pending обновления
-    await bot.delete_webhook(drop_pending_updates=True)
+    # Обработчик НЕОБРАБОТАННЫХ сообщений (для отладки)
+    @dp.message()
+    async def catch_all(message: Message):
+        logger.warning(f"🔍 Необработанное сообщение: '{message.text}' от @{message.from_user.username} (ID: {message.from_user.id})")
+        # Не отвечаем, чтобы не спамить
     
-    logging.info("✅ Бот запущен! Напишите ему в Telegram: /start")
+    logger.info("✅ Бот запущен! Напишите ему в Telegram: /start")
     
     # Запуск пуллинга
     try:
-        await dp.start_polling(bot)
+        await dp.start_polling(bot, drop_pending_updates=True)
     except KeyboardInterrupt:
-        logging.info("🛑 Бот остановлен пользователем")
+        logger.info("🛑 Бот остановлен пользователем")
     except Exception as e:
-        logging.error(f"❌ Ошибка бота: {e}")
+        logger.error(f"❌ Ошибка бота: {e}")
         raise
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except RuntimeError as e:
-        # Игнорируем ошибку "Event loop is closed" на Windows
         if "Event loop is closed" not in str(e):
             raise
