@@ -9,9 +9,9 @@ user_languages = {}
 def get_main_keyboard(lang='ru'):
     texts = {
         'ru': {
-            'quiz': '🎯 Опишите свое самочувствие',
-            'emergency': '🆘 Мне очень плохо сейчас',
-            'guide': '📚 Мой персональный гайд для улучшения состояния',
+            'quiz': '🎯 Настроить под меня',
+            'emergency': '🆘 Мне плохо сейчас',
+            'guide': '📚 Мой персональный гайд',
             'language': '🌐 Язык'
         }
     }
@@ -42,7 +42,7 @@ async def cmd_start(message: Message):
         reply_markup=ReplyKeyboardMarkup(keyboard=lang_kb, resize_keyboard=True)
     )
 
-@router.message(F.text.in_(SUPPORTED_LANGUAGES.values()))
+@router.message(F.text.in_(list(SUPPORTED_LANGUAGES.values())))
 async def language_selected(message: Message):
     lang_code = next((k for k, v in SUPPORTED_LANGUAGES.items() if v == message.text), 'ru')
     user_languages[message.from_user.id] = lang_code
