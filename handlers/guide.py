@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from groq import Groq
 from config import GROQ_API_KEY
 from prompts import get_guide_prompt
@@ -9,20 +9,19 @@ import logging
 router = Router()
 logger = logging.getLogger(__name__)
 
-# Инициализация клиента Groq (с проверкой ключа)
+# Инициализация клиента Groq
 if not GROQ_API_KEY or GROQ_API_KEY == "YOUR_GROQ_API_KEY_HERE":
-    raise ValueError("❌ GROQ_API_KEY не установлен! Добавьте его в переменные окружения.")
+    raise ValueError("❌ GROQ_API_KEY не установлен!")
 
 client = Groq(api_key=GROQ_API_KEY)
 
-# Импорт данных квиза
 from handlers.quiz import user_quiz_data
 
-@router.message(F.text == '📚 Мой персональный гайд')
+@router.message(F.text.in_(['📚 Мой персональный гайд', '📚 Получить гайд']))
 async def generate_guide(message: Message):
     user_id = message.from_user.id
     
-    logger.info(f"📚 Запрос гайда. User: {user_id}")
+    logger.info(f"📚 Запрос гайда. User: {user_id}, Text: '{message.text}'")
     
     if user_id not in user_quiz_data or not user_quiz_data[user_id]:
         await message.answer(
@@ -54,14 +53,12 @@ async def generate_guide(message: Message):
         )
         
         guide = response.choices[0].message.content
-        
-        # Отправляем гайд
         await message.answer(guide)
         
         await message.answer(
             "✅ <b>Ваш персонализированный гайд готов!</b>\n\n"
-            "💡 <i>Совет:</i> Сохраните этот гайд скриншотом или перепишите ключевые моменты.\n"
-            "Перечитывайте его в спокойном состоянии — это укрепляет нейронные связи.",
+            "💡 <i>Совет:</i> Сохраните этот гайд скриншотом.\n"
+            "Перечитывайте его в спокойном состоянии.",
             reply_markup=ReplyKeyboardMarkup(
                 keyboard=[
                     [KeyboardButton(text="🆘 Мне плохо сейчас")],
@@ -73,35 +70,16 @@ async def generate_guide(message: Message):
         
     except Exception as e:
         error_msg = str(e)
-        
         logger.error(f"❌ Ошибка генерации гайда: {error_msg}")
         
-        if "rate_limit" in error_msg.lower() or "429" in error_msg:
-            await message.answer(
-                "⚠️ <b>Достигнут лимит запросов к ИИ</b> (100/час).\n"
-                "Попробуйте через 1 минуту или используйте бесплатные техники ниже:\n\n"
-                "🧘 <b>Техника 5-4-3-2-1:</b>\n"
-                "<b>5</b> вещей видите → <b>4</b> трогаете → <b>3</b> слышите → "
-                "<b>2</b> нюхаете → <b>1</b> пробуете",
-                reply_markup=ReplyKeyboardMarkup(
-                    keyboard=[
-                        [KeyboardButton(text="🆘 Мне плохо сейчас")],
-                        [KeyboardButton(text="🎯 Настроить заново")]
-                    ],
-                    resize_keyboard=True
-                )
+        await message.answer(
+            f"❌ <b>Ошибка:</b> {error_msg[:200]}\n\n"
+            "Попробуйте позже или используйте бесплатные техники:",
+            reply_markup=ReplyKeyboardMarkup(
+                keyboard=[
+                    [KeyboardButton(text="🆘 Мне плохо сейчас")],
+                    [KeyboardButton(text="🎯 Настроить заново")]
+                ],
+                resize_keyboard=True
             )
-        else:
-            await message.answer(
-                f"❌ <b>Ошибка:</b> {error_msg[:200]}\n\n"
-                "Но не волнуйтесь! Вот базовая техника:\n\n"
-                "🌬️ <b>Дыхание 4-7-8</b>\n"
-                "Вдох 4 сек → Задержка 7 сек → Выдох 8 сек → Повторить 4 раза",
-                reply_markup=ReplyKeyboardMarkup(
-                    keyboard=[
-                        [KeyboardButton(text="🆘 Мне плохо сейчас")],
-                        [KeyboardButton(text="🎯 Настроить заново")]
-                    ],
-                    resize_keyboard=True
-                )
-            )
+        )
